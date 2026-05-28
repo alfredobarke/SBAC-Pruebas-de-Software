@@ -131,7 +131,7 @@ def history():
         return
 
     print("=== Historial de versiones ===")
-    for key, data in sorted(metadata.items(), key=lambda x: x[1]["id"], reverse=True):
+    for _, data in sorted(metadata.items(), key=lambda x: x[1]["id"], reverse=True):
         print(f"\n  #{data['id']} - {data['timestamp']}")
         print(f"  Mensaje : {data['message']}")
         print(f"  Archivos: {', '.join(data['files'])}")
@@ -169,3 +169,114 @@ def checkout(commit_id):
             print(f"  Advertencia: '{file}' no encontrado en el commit.")
 
     print(f"\nCheckout al commit #{commit_id} (\"{commit_data['message']}\") completado.")
+
+
+# ─────────────────────────────────────────────
+#  FUNCIONES: baseline
+# ─────────────────────────────────────────────
+
+BASELINES_META = ".sbac/baselines_meta.json"
+
+
+def create_baseline(name):
+    """Crea una línea base con nombre a partir de los archivos rastreados actuales."""
+
+    if not os.path.exists(".sbac"):
+        print("Repositorio no inicializado")
+        return
+
+    with open(".sbac/tracked_files.json", "r") as f:
+        tracked = json.load(f)
+
+    if not tracked:
+        print("No hay archivos rastreados.")
+        return
+
+    baseline_dir = f".sbac/baselines/{name}"
+    if os.path.exists(baseline_dir):
+        print(f"La línea base '{name}' ya existe.")
+        return
+
+    os.makedirs(baseline_dir)
+
+    for file in tracked:
+        if os.path.exists(file):
+            shutil.copy2(file, baseline_dir)
+        else:
+            print(f"Advertencia: '{file}' no encontrado, se omite.")
+
+    if os.path.exists(BASELINES_META):
+        with open(BASELINES_META, "r") as f:
+            meta = json.load(f)
+    else:
+        meta = {}
+
+    meta[name] = {
+        "name": name,
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "files": tracked.copy(),
+    }
+
+    with open(BASELINES_META, "w") as f:
+        json.dump(meta, f, indent=4)
+
+    print(f"Línea base '{name}' creada.")
+
+
+def list_baselines():
+    """Muestra todas las líneas base registradas."""
+
+    if not os.path.exists(".sbac"):
+        print("Repositorio no inicializado")
+        return
+
+    if not os.path.exists(BASELINES_META):
+        print("No hay líneas base registradas.")
+        return
+
+    with open(BASELINES_META, "r") as f:
+        meta = json.load(f)
+
+    if not meta:
+        print("No hay líneas base registradas.")
+        return
+
+    print("=== Líneas base ===")
+    for name, data in meta.items():
+        print(f"\n  {name} - {data['timestamp']}")
+        print(f"  Archivos: {', '.join(data['files'])}")
+
+
+def restore_baseline(name):
+    """Restaura los archivos al estado de una línea base."""
+
+    if not os.path.exists(".sbac"):
+        print("Repositorio no inicializado")
+        return
+
+    baseline_dir = f".sbac/baselines/{name}"
+    if not os.path.exists(baseline_dir):
+        print(f"La línea base '{name}' no existe.")
+        return
+
+    if not os.path.exists(BASELINES_META):
+        print("Metadatos de líneas base no encontrados.")
+        return
+
+    with open(BASELINES_META, "r") as f:
+        meta = json.load(f)
+
+    data = meta.get(name)
+    if not data:
+        print(f"Metadatos de la línea base '{name}' no encontrados.")
+        return
+
+    for file in data["files"]:
+        src = os.path.join(baseline_dir, os.path.basename(file))
+        if os.path.exists(src):
+            shutil.copy2(src, file)
+            print(f"  Restaurado: {file}")
+        else:
+            print(f"  Advertencia: '{file}' no encontrado en la línea base.")
+
+    print(f"\nLínea base '{name}' restaurada.")
