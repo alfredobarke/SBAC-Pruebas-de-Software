@@ -1,0 +1,16 @@
+name: Tests con pytest
+on:
+  push:
+    branches: ["**"]        
+  pull_request:
+    branches: [main, feature/**]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+      - name: Build imagen Docker
+        run: docker build -t sbac-tests .
+      - name: Correr pytest
+        run: docker run --rm sbac-tests pytest tests/ -v --tb=short
