@@ -1,5 +1,9 @@
 import sys
-from app.repository import init_repository, add_file, status, commit, history, checkout
+from app.repository import (
+    init_repository, add_file, status, commit, 
+    history, checkout, create_baseline, list_baselines
+)
+from app.utils import diff_commits
 
 command = sys.argv[1] if len(sys.argv) > 1 else None
 
@@ -30,5 +34,20 @@ elif command == "checkout":
     else:
         checkout(sys.argv[2])
 
+elif command == "baseline":
+    if len(sys.argv) < 3:
+        print("Uso: sbac baseline <nombre>")
+    else:
+        create_baseline(sys.argv[2])
+
+elif command == "list-baselines":
+    list_baselines()
+
+elif command == "diff":
+    if len(sys.argv) < 4:
+        print("Uso: sbac diff <v1> <v2>")
+    else:
+        diff_commits(sys.argv[2], sys.argv[3])
+
 else:
-    print("Comandos disponibles: init, add, status, commit, history, checkout")
+    print("Comandos disponibles: init, add, status, commit, history, checkout, baseline, list-baselines, diff")
