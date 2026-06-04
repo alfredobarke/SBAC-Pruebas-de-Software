@@ -9,11 +9,13 @@ SBAC es una herramienta de línea de comandos para rastrear versiones de archivo
 ## Requisitos previos
 
 - [Docker](https://www.docker.com/) instalado y en ejecución.
-- El script `sbac` debe tener permisos de ejecución:
+- **Mac/Linux:** El script `sbac` debe tener permisos de ejecución:
 
 ```bash
 chmod +x sbac
 ```
+
+- **Windows:** Usar el script `sbac.bat` incluido en el repositorio. No requiere configuración adicional.
 
 ---
 
@@ -24,8 +26,14 @@ El script `sbac` se encarga de construir la imagen Docker automáticamente y mon
 
 ### Sintaxis general
 
+**Mac/Linux:**
 ```bash
 ./sbac <comando> [argumentos]
+```
+
+**Windows:**
+```powershell
+.\sbac.bat <comando> [argumentos]
 ```
 
 ### Ejemplo rápido
